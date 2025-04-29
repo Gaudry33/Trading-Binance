@@ -5,6 +5,7 @@ import math
 import pandas as pd
 from ta import trend
 from binance.helpers import round_step_size
+import time
 
 API_KEY = "Clé API"
 API_SECRET = "Clé API secrète"
@@ -14,9 +15,31 @@ STABLE = "USDC"
 PAIR = CRYPTO + STABLE
 TRUNC = 4  
 
+client = Client(API_KEY, API_SECRET)
+
+def sync_timestamp():
+    server_time = client.get_server_time()
+    client.timestamp_offset = int(server_time["serverTime"]) - int(time.time() * 1000)
+
+sync_timestamp()
+
+assets = ["USDC", "BTC"]
+
+print("\n Soldes détaillés (wallet spot) :")
+account = client.get_account()
+
+for balance in account["balances"]:
+    asset = balance["asset"]
+    if asset in assets:
+        free = float(balance["free"])
+        locked = float(balance["locked"])
+        total = free + locked
+        print(f"💰 {asset} - Disponible : {free} | Bloqué : {locked} | Total : {total}")
+
 class Bot:
     def __init__(self):
-        self.client = Client(API_KEY, API_SECRET)
+         self.client = Client(API_KEY, API_SECRET)
+         self.client.timestamp_offset = int(self.client.get_server_time()['serverTime']) - int(time.time() * 1000)
 
     def trunc(self, value, n):
         power = 10 ** n
@@ -70,7 +93,8 @@ class Bot:
 
         if sma7 < sma25:
             qty = self.trunc(stable_balance / price, TRUNC)
-            if qty > 0.0001:
+            print(f"Quantité calculée à acheter : {qty} BTC")
+            if qty >= 0.0001:
                 buy_price = round_step_size(price * 0.997, tick_size)
                 print("Achat limite à", buy_price)
                 self.client.create_order(
@@ -85,7 +109,7 @@ class Bot:
                 print("Pas assez d'argents pour acheter")
         elif sma7 > sma25:
             qty = self.trunc(crypto_balance, TRUNC)
-            if qty > 0.0001:
+            if qty >= 0.0001:
                 sell_price = round_step_size(price * 1.003, tick_size)
                 print("Vente limite à", sell_price)
                 self.client.create_order(
