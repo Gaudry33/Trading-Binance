@@ -65,9 +65,6 @@ Voici un exemple de la liste des éléments dont vous avez besoin pour utiliser 
       ```sh
    cat /home/debian/bot.log
    ```
-      <p align="center">
-  <img src="assets/capture6.png"  width="800">
-</p>   
 
 Voilà, grâce au VPS et au script Cron, le Script Trading Binance va tourner en continue 24/24h, et est maintenant automatisé.
 
